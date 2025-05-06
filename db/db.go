@@ -3,10 +3,37 @@ package db
 import (
 	"log"
 	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+type User struct {
+	ID        uint   `gorm:"primaryKey"`
+	Name      string `gorm:"size:100;not null"`
+	Email     string `gorm:"uniqueIndex;not null"`
+	Phone     string `gorm:"size:20"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt
+}
+
+type Secret struct {
+	ID        uint   `gorm:"primaryKey"`
+	Password  string `gorm:"not null"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Transaction struct {
+	ID        uint   `gorm:"primaryKey"`
+	Title     string `gorm:"not null"`
+	UserID    uint   `gorm:"not null;index"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt
+}
 
 var DB *gorm.DB
 
@@ -29,4 +56,18 @@ func Init() {
 	}
 
 	log.Print("Connecting to database done.")
+
+	log.Print("Migrating schema...")
+
+	err = DB.AutoMigrate(
+		&User{},
+		&Secret{},
+		&Transaction{},
+	)
+
+	if err != nil {
+		log.Fatalf("Migrating schema failed, err: %s", err)
+	}
+
+	log.Print("Migrating schema done.")
 }
