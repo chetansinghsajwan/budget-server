@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"budget-server/db"
 	"log"
 	"net/http"
 	"strconv"
@@ -25,12 +26,25 @@ func HandleGetTransaction(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 
 	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusBadRequest)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"Error": err.Error(),
+		})
 		return
 	}
 
-	log.Printf("Get transaction request received for id '%d'", id)
+	var transaction db.Transaction
+	err = db.DB.First(&transaction, id).Error
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"Error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"Transaction": transaction,
+	})
 }
 
 func HandleUnknownTransaction(ctx *gin.Context) {
