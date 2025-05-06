@@ -1,53 +1,38 @@
 package transaction
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
-func HandleCreateTransaction(w http.ResponseWriter, r *http.Request) {
-    log.Println("Create transaction request received.")
+func HandleCreateTransaction(ctx *gin.Context) {
+	log.Println("Create transaction request received.")
 }
 
-func HandleDeleteTransaction(w http.ResponseWriter, r *http.Request) {
-    log.Println("Delete transaction request received.")
+func HandleDeleteTransaction(ctx *gin.Context) {
+	log.Println("Delete transaction request received.")
 }
 
-func HandleUpdateTransaction(w http.ResponseWriter, r *http.Request) {
-    log.Println("Update transaction request received.")
+func HandleUpdateTransaction(ctx *gin.Context) {
+	log.Println("Update transaction request received.")
 }
 
-func HandleGetTransaction(w http.ResponseWriter, r *http.Request) {
-    id, err := strconv.Atoi(r.PathValue("id"))
+func HandleGetTransaction(ctx *gin.Context) {
 
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
-        return
-    }
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 
-    log.Printf("Get transaction request received for id '%d'", id)
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusBadRequest)
+		return
+	}
 
-    w.Header().Set("content-type", "application/json")
-    w.Write([]byte(fmt.Sprintf("Get transaction request received for id '%d'", id)))
+	log.Printf("Get transaction request received for id '%d'", id)
 }
 
-func HandleUnknownTransaction(w http.ResponseWriter, r *http.Request) {
-    log.Println("Unknown transaction request received.")
-}
-
-func HandleTransaction(w http.ResponseWriter, r *http.Request) {
-    switch r.Method {
-    case http.MethodGet:
-        HandleGetTransaction(w, r)
-    case http.MethodPut:
-        HandleCreateTransaction(w, r)
-    case http.MethodDelete:
-        HandleDeleteTransaction(w, r)
-    case http.MethodPatch:
-        HandleUpdateTransaction(w, r)
-    default:
-        HandleUnknownTransaction(w, r)
-    }
+func HandleUnknownTransaction(ctx *gin.Context) {
+	log.Println("Unknown transaction request received.")
 }
