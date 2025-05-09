@@ -37,6 +37,10 @@ type Transaction struct {
 
 var DB *gorm.DB
 
+func DeleteUserByKey(id uint64) error {
+	return DB.Delete(&User{}, id).Error
+}
+
 func Init() {
 
 	log.Print("Connecting to database...")
@@ -59,11 +63,11 @@ func Init() {
 
 	log.Print("Migrating schema...")
 
-	err = DB.AutoMigrate(
-		&User{},
-		&Secret{},
-		&Transaction{},
-	)
+	// err = DB.AutoMigrate(
+	// 	&User{},
+	// 	&Secret{},
+	// 	&Transaction{},
+	// )
 
 	if err != nil {
 		log.Fatalf("Migrating schema failed, err: %s", err)
