@@ -1,58 +1,74 @@
 package db
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"database/sql"
+
+	_ "github.com/lib/pq"
 )
 
-type User struct {
-	ID        uint   `gorm:"primaryKey"`
-	Name      string `gorm:"size:100;not null"`
-	Email     string `gorm:"uniqueIndex;not null"`
-	Phone     string `gorm:"size:20"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt
-}
+var DB *sql.DB
 
-type Secret struct {
-	ID        uint   `gorm:"primaryKey"`
-	Password  string `gorm:"not null"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+func DeleteUserByKey(id uint64) (sql.Result, error) {
+
+	var query = fmt.Sprintf(
+		`
+		delete from users
+		where id = %d
+		`,
+		id,
+	)
+
+	return DB.Exec(query)
 }
 
 type Transaction struct {
-	ID        uint   `gorm:"primaryKey"`
-	Title     string `gorm:"not null"`
-	UserID    uint   `gorm:"not null;index"`
+	Id        uint
+	Title     string
+	UserId    uint
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt
+	DeletedAt *time.Time
 }
 
-var DB *gorm.DB
+func GetTransaction(id uint64) (*Transaction, error) {
 
-func DeleteUserByKey(id uint64) error {
-	return DB.Delete(&User{}, id).Error
+	var query = fmt.Sprintf(
+		`
+		select * from transactions
+		where id = %d
+		`,
+		id,
+	)
+
+	var row = DB.QueryRow(query)
+
+	var result Transaction
+	var err = row.Scan(&result)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func Init() {
 
 	log.Print("Connecting to database...")
 
-	connString := os.Getenv("DB_CONNECT_STRING")
+	var connString = os.Getenv("DB_CONNECT_STRING")
 	if connString == "" {
 		log.Fatal("Connecting to database failed, empty connection string")
 		return
 	}
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(connString), &gorm.Config{})
+	DB, err = sql.Open("postgres", connString)
 
 	if err != nil {
 		log.Fatalf("Connecting to database failed, err: %s", err.Error())
@@ -60,18 +76,4 @@ func Init() {
 	}
 
 	log.Print("Connecting to database done.")
-
-	log.Print("Migrating schema...")
-
-	// err = DB.AutoMigrate(
-	// 	&User{},
-	// 	&Secret{},
-	// 	&Transaction{},
-	// )
-
-	if err != nil {
-		log.Fatalf("Migrating schema failed, err: %s", err)
-	}
-
-	log.Print("Migrating schema done.")
 }
