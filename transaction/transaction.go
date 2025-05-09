@@ -25,7 +25,7 @@ func HandleDeleteTransaction(ctx *gin.Context) {
 		return
 	}
 
-	err = db.DeleteUserByKey(id)
+	_, err = db.DeleteUserByKey(id)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -55,8 +55,8 @@ func HandleGetTransaction(ctx *gin.Context) {
 		return
 	}
 
-	var transaction db.Transaction
-	err = db.DB.First(&transaction, id).Error
+	var transaction *db.Transaction
+	transaction, err = db.GetTransaction(id)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
