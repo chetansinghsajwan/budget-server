@@ -14,7 +14,30 @@ func HandleCreateTransaction(ctx *gin.Context) {
 }
 
 func HandleDeleteTransaction(ctx *gin.Context) {
-	log.Println("Delete transaction request received.")
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+
+	log.Printf("Delete request received for id %d", id)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"Error": err.Error(),
+		})
+		return
+	}
+
+	err = db.DeleteUserByKey(id)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"Error": err.Error(),
+		})
+
+		return
+	}
+
+	log.Printf("Delete request completed.")
+
+	ctx.Status(http.StatusOK)
 }
 
 func HandleUpdateTransaction(ctx *gin.Context) {
