@@ -26,7 +26,6 @@ func main() {
 	router.PATCH("/transaction/:id", transaction.HandleUpdateTransaction)
 	router.DELETE("/transaction/:id", transaction.HandleDeleteTransaction)
 
-	log.Println("Server listening at port 8080...")
 	err = router.Run(":8080")
 	log.Fatal(err)
 }
