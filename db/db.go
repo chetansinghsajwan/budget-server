@@ -1,10 +1,8 @@
 package db
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"database/sql"
 
@@ -13,49 +11,7 @@ import (
 
 var DB *sql.DB
 
-func DeleteUserByKey(id uint64) (sql.Result, error) {
-
-	var query = fmt.Sprintf(
-		`
-		delete from users
-		where id = %d
-		`,
-		id,
-	)
-
-	return DB.Exec(query)
-}
-
-type Transaction struct {
-	Id        uint
-	Title     string
-	UserId    uint
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-}
-
-func GetTransaction(id uint64) (*Transaction, error) {
-
-	var query = fmt.Sprintf(
-		`
-		select * from transactions
-		where id = %d
-		`,
-		id,
-	)
-
-	var row = DB.QueryRow(query)
-
-	var result Transaction
-	var err = row.Scan(&result)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &result, nil
-}
+type UserId = uint64
 
 func Init() {
 
@@ -76,4 +32,19 @@ func Init() {
 	}
 
 	log.Print("Connecting to database done.")
+}
+
+func DeleteUser(id UserId) error {
+
+	_, err := DB.Exec(
+		`
+		UPDATE users
+		SET deleted_at = CURRENT_TIMESTAMP
+		WHERE id = ?
+			AND deleted_at IS NULL
+		`,
+		id,
+	)
+
+	return err
 }
