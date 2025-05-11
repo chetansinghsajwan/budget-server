@@ -11,8 +11,6 @@ import (
 
 var DB *sql.DB
 
-type UserId = uint64
-
 func Init() {
 
 	log.Print("Connecting to database...")
@@ -32,19 +30,4 @@ func Init() {
 	}
 
 	log.Print("Connecting to database done.")
-}
-
-func DeleteUser(id UserId) error {
-
-	_, err := DB.Exec(
-		`
-		UPDATE users
-		SET deleted_at = CURRENT_TIMESTAMP
-		WHERE id = ?
-			AND deleted_at IS NULL
-		`,
-		id,
-	)
-
-	return err
 }

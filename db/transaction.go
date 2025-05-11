@@ -54,7 +54,6 @@ func GetTransaction(id TransactionId) (*Transaction, error) {
 	var row = DB.QueryRow(
 		`
 		SELECT
-			id,
 			owner_id,
 			title,
 			created_at,
@@ -68,7 +67,9 @@ func GetTransaction(id TransactionId) (*Transaction, error) {
 	)
 
 	var result Transaction
-	var err = row.Scan(&result.Id, &result.OwnerId, &result.Title,
+	result.Id = id
+
+	var err = row.Scan(&result.OwnerId, &result.Title,
 		&result.CreatedAt, &result.UpdatedAt, &result.DeletedAt)
 
 	if err != nil {
