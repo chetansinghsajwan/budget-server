@@ -25,7 +25,7 @@ func HandleDeleteTransaction(ctx *gin.Context) {
 		return
 	}
 
-	err = db.DeleteUser(id)
+	err = db.DeleteTransaction(id)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -68,8 +68,4 @@ func HandleGetTransaction(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"Transaction": transaction,
 	})
-}
-
-func HandleUnknownTransaction(ctx *gin.Context) {
-	log.Println("Unknown transaction request received.")
 }

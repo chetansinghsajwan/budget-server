@@ -36,7 +36,7 @@ func CreateUser(value UserCreate) (UserId, error) {
 		`
 		INSERT INTO users
 		(name, email, phone)
-		VALUES (?, ?, ?)
+		VALUES ($1, $2, $3)
 		`,
 		value.Name,
 		value.Email,
@@ -59,7 +59,7 @@ func CreateUser(value UserCreate) (UserId, error) {
 		`
 		INSERT INTO secrets
 		(user_id, password)
-		VALUES (?, ?)
+		VALUES ($1, $2)
 		`,
 		id,
 		value.Password,
@@ -84,7 +84,8 @@ func GetUser(id UserId) (*User, error) {
 			email,
 			phone
 		FROM users
-		WHERE id = ?
+		WHERE id = $1
+			AND deleted_at IS NULL
 		`,
 		id,
 	)
@@ -105,10 +106,10 @@ func UpdateUser(value UserUpdate) error {
 	_, err := DB.Exec(
 		`
 		UPDATE users
-		SET name = ?,
-			email = ?,
-			phone = ?
-		WHERE id = ?,
+		SET name = $1,
+			email = $2,
+			phone = $3
+		WHERE id = $4,
 			AND deleted_at IS NULL
 		`,
 		value.Name,
@@ -126,7 +127,7 @@ func DeleteUser(id UserId) error {
 		`
 		UPDATE users
 		SET deleted_at = CURRENT_TIMESTAMP
-		WHERE id = ?
+		WHERE id = $1
 			AND deleted_at IS NULL
 		`,
 		id,
