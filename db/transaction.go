@@ -2,6 +2,8 @@ package db
 
 import (
 	"time"
+
+	"github.com/lib/pq"
 )
 
 type TransactionId = uint64
@@ -10,19 +12,31 @@ type Transaction struct {
 	Id        TransactionId
 	Title     string
 	OwnerId   UserId
+	Amount    uint64
+	IsCredit  bool
+	Time      *time.Time
+	Tags      pq.StringArray
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
 }
 
 type TransactionCreate struct {
-	Title   string
-	OwnerId uint
+	Title    string
+	OwnerId  uint
+	Amount   string
+	IsCredit bool
+	Time     *time.Time
+	Tags     []string
 }
 
 type TransactionUpdate struct {
-	Id    TransactionId
-	Title *string
+	Id       TransactionId
+	Title    *string
+	Amount   *string
+	IsCredit *bool
+	Time     **time.Time
+	Tags     *[]string
 }
 
 func CreateTransaction(value TransactionCreate) (TransactionId, error) {
@@ -30,10 +44,15 @@ func CreateTransaction(value TransactionCreate) (TransactionId, error) {
 	result, err := DB.Exec(
 		`
 		INSERT INTO transactions
-		(title, owner_id)
-		VALUES (?, ?)
+		(title, owner_id, amount, is_credit, time, tags)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		`,
-		value.Title, value.OwnerId,
+		value.Title,
+		value.OwnerId,
+		value.Amount,
+		value.IsCredit,
+		value.Time,
+		value.Tags,
 	)
 
 	if err != nil {
@@ -56,11 +75,15 @@ func GetTransaction(id TransactionId) (*Transaction, error) {
 		SELECT
 			owner_id,
 			title,
+			(amount::numeric)::bigint as amount,
+			is_credit,
+			time,
+			tags,
 			created_at,
 			updated_at,
 			deleted_at
 		FROM transactions
-		WHERE id = ?
+		WHERE id = $1
 			AND deleted_at IS NULL
 		`,
 		id,
@@ -70,6 +93,7 @@ func GetTransaction(id TransactionId) (*Transaction, error) {
 	result.Id = id
 
 	var err = row.Scan(&result.OwnerId, &result.Title,
+		&result.Amount, &result.IsCredit, &result.Time, &result.Tags,
 		&result.CreatedAt, &result.UpdatedAt, &result.DeletedAt)
 
 	if err != nil {
@@ -84,8 +108,8 @@ func UpdateTransaction(value TransactionUpdate) error {
 	_, err := DB.Exec(
 		`
 		UPDATE transactions
-		SET title = ?
-		WHERE id = ?
+		SET title = $1
+		WHERE id = $2
 			AND deleted_at IS NULL
 		`,
 		value.Title,
@@ -101,7 +125,7 @@ func DeleteTransaction(id TransactionId) error {
 		`
 		UPDATE transactions
 		SET deleted_at = CURRENT_TIMESTAMP
-		WHERE id = ?
+		WHERE id = $1
 			AND deleted_at IS NULL
 		`,
 		id,
