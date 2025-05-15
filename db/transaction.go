@@ -24,19 +24,19 @@ type Transaction struct {
 type TransactionCreate struct {
 	Title    string
 	OwnerId  uint
-	Amount   string
+	Amount   uint64
 	IsCredit bool
 	Time     *time.Time
-	Tags     []string
+	Tags     pq.StringArray
 }
 
 type TransactionUpdate struct {
 	Id       TransactionId
 	Title    *string
-	Amount   *string
+	Amount   *uint64
 	IsCredit *bool
 	Time     **time.Time
-	Tags     *[]string
+	Tags     *pq.StringArray
 }
 
 func CreateTransaction(value TransactionCreate) (TransactionId, error) {
